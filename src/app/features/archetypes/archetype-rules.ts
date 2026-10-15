@@ -47,7 +47,7 @@ export function deriveRules(type:ArchetypeId,baselineFiles:string[],pkg:PackageC
   }
   if(type!=='microservice'){
     for(const directory of ['src/app/core','src/app/features','src/public'])if(files.some(path=>path.startsWith(directory+'/')))rules.push({id:`directory:${directory}`,title:`Carpeta ${directory}`,category:'Estructura',kind:'directory',pattern:directory});
-    for(const dependency of Object.keys(pkg?.dependencies??{}).filter(key=>key.startsWith('@claro/')||['@angular/core','@angular/router','@angular-architects/native-federation'].includes(key)))rules.push({id:`dependency:${dependency}`,title:`Dependencia ${dependency}`,category:'Dependencias',kind:'dependency',pattern:dependency});
+    for(const dependency of Object.keys(pkg?.dependencies??{}).filter(key=>['@angular/core','@angular/router','@angular-architects/native-federation'].includes(key)))rules.push({id:`dependency:${dependency}`,title:`Dependencia ${dependency}`,category:'Dependencias',kind:'dependency',pattern:dependency});
     for(const script of ['build','test','lint'])if(pkg?.scripts?.[script])rules.push({id:`script:${script}`,title:`Script ${script}`,category:'Calidad',kind:'script',pattern:script});
   }
   return rules;

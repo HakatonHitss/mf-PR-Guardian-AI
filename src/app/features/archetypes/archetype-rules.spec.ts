@@ -3,7 +3,7 @@ import {deriveRules,evaluateRules,glob,parsePolicy,detectArchetype,GENERATOR_ROO
 const metadata='<archetype-descriptor><fileSets><fileSet packaged="true"><directory>src/main/java</directory></fileSet><fileSet packaged="true"><directory>src/main/java</directory><includes><include>**/kafka/**/*.java</include></includes><requiredProperties><requiredProperty key="includeKafka"/></requiredProperties></fileSet></fileSets></archetype-descriptor>';
 describe('Archetype structural comparison',()=>{
  it('treats file extensions literally and supports zero or more package directories',()=>{
-  expect(glob('package.json').test('packageXjson')).toBe(false);expect(glob('src/main/java/**/controller/*Controller.java').test('src/main/java/com/claro/orders/controller/OrderController.java')).toBe(true);expect(glob('src/main/java/**/controller/*Controller.java').test('src/main/java/controller/OrderController.java')).toBe(true);
+    expect(glob('package.json').test('packageXjson')).toBe(false);expect(glob('src/main/java/**/controller/*Controller.java').test('src/main/java/com/example/orders/controller/OrderController.java')).toBe(true);expect(glob('src/main/java/**/controller/*Controller.java').test('src/main/java/controller/OrderController.java')).toBe(true);
  });
  it('does not require sample feature filenames or example core business services',()=>{
   const rules=deriveRules('microfrontend',['package.json','src/app/core/services/template-api.service.ts','src/app/features/template/template.component.ts','src/app/app.config.ts'],{dependencies:{'@angular/core':'20'},scripts:{build:'ng build'}});
@@ -12,7 +12,7 @@ describe('Archetype structural comparison',()=>{
  });
  it('checks generated Java layout with package and renamed class-prefix placeholders',()=>{
   const rules=deriveRules('microservice',[GENERATOR_ROOT+'pom.xml',GENERATOR_ROOT+'src/main/java/controller/__classPrefix__Controller.java'],null,metadata);
-  const result=evaluateRules(rules,['pom.xml','src/main/java/com/claro/order/controller/OrderController.java'],null,{});expect(result.every(rule=>rule.status==='passed')).toBe(true);expect(rules.some(rule=>rule.pattern.includes('archetype-resources'))).toBe(false);
+    const result=evaluateRules(rules,['pom.xml','src/main/java/com/example/order/controller/OrderController.java'],null,{});expect(result.every(rule=>rule.status==='passed')).toBe(true);expect(rules.some(rule=>rule.pattern.includes('archetype-resources'))).toBe(false);
  });
  it('does not require optional Kafka when disabled or claim compliance when unspecified',()=>{
   const rules=deriveRules('microservice',[GENERATOR_ROOT+'src/main/java/kafka/service/KafkaProducer.java'],null,metadata);

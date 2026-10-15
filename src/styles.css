@@ -1,12 +1,11 @@
-@import '@claro/ui/variables.css';
 @import 'tailwindcss';
 @source './**/*.{html,ts}';
 @layer base {
- app-mf-pr-guardian-ai-root { display:block; width:100%; font-family:var(--claro-font-family), 'Segoe UI', sans-serif; color:#22324a; }
+ app-mf-pr-guardian-ai-root { display:block; width:100%; font-family:var(--guardian-font-family), 'Segoe UI', sans-serif; color:#22324a; }
  body { margin:0; background:#f7f8fb; }
 }
 
 :root {
- --claro-font-family:var(--c-font-family); --claro-white:var(--c-white); --claro-red:var(--c-red-600); --claro-red-dark:var(--c-red-800);
- --claro-gray-bg:var(--c-gray-100); --claro-border:var(--c-gray-200); --claro-text-main:var(--c-gray-900); --claro-text-muted:var(--c-gray-500);
+ --guardian-font-family: 'Segoe UI', sans-serif; --guardian-white:#ffffff; --guardian-red:#c42b22; --guardian-red-dark:#9f1c16;
+ --guardian-gray-bg:#f3f4f6; --guardian-border:#e5e7eb; --guardian-text-main:#111827; --guardian-text-muted:#6b7280;
 }

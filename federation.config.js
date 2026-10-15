@@ -7,11 +7,9 @@ module.exports = withNativeFederation({
         './Routes': './src/app/app.routes.ts'
     },
     shared: {
-        ...shareAll({ singleton: true, strictVersion: true, requiredVersion: 'auto' }),
-        '@claro/message-bus': { singleton: true, strictVersion: false }
+        ...shareAll({ singleton: true, strictVersion: true, requiredVersion: 'auto' })
     },
     skip: [
-        '@claro/contracts',
         'rxjs/ajax',
         'rxjs/fetch',
         'rxjs/testing',

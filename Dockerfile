@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM 172.19.90.65:6000/eag/nodejs:20-debian-1 AS builder
+FROM node:20-bookworm-slim AS builder
 
 # Es normal usar root en el builder stage si el entorno lo requiere
 USER root
@@ -12,11 +12,6 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY .npmrc /root/
-
-# Bypass de proxy para Nexus interno
-ENV no_proxy=172.19.90.65,localhost,127.0.0.1
-ENV NO_PROXY=172.19.90.65,localhost,127.0.0.1
 
 # Install dependencies
 RUN npm install --no-audit
@@ -31,7 +26,7 @@ RUN echo "Build complete. Listing output:"
 RUN ls -la dist/
     
 # Stage 2: Serve
-FROM 172.19.90.65:6000/ubi9/nginx-120
+FROM nginxinc/nginx-unprivileged:1.27-alpine
 
 USER root
 
@@ -59,8 +54,8 @@ RUN chmod +x /docker-entrypoint.sh && \
 RUN echo "Files in nginx html:" && \
     ls -la /usr/share/nginx/html/
 
-# Las imágenes UBI de Nginx por defecto usan el usuario 1001, que es seguro y compatible.
-USER 1001
+# La imagen pública de NGINX expone el usuario no privilegiado con UID 101.
+USER 101
 
 ARG ENV=production
 ARG BUILD_VERSION=latest
