@@ -1,0 +1,76 @@
+app-mf-pr-guardian-ai-workspace-page{display:block;color:#22324a;font-family:Inter,'Segoe UI',sans-serif;font-size:14px}
+app-mf-pr-guardian-ai-workspace-page *{box-sizing:border-box}
+app-mf-pr-guardian-ai-workspace-page .workspace{max-width:1440px;margin:auto;padding:8px 0 20px}
+app-mf-pr-guardian-ai-workspace-page h1, app-mf-pr-guardian-ai-workspace-page h2, app-mf-pr-guardian-ai-workspace-page h3, app-mf-pr-guardian-ai-workspace-page p{margin:0}
+app-mf-pr-guardian-ai-workspace-page h1{font-size:30px;letter-spacing:-1px;margin:8px 0 10px;color:#15253c}
+app-mf-pr-guardian-ai-workspace-page h2{font-size:17px;margin-bottom:14px}
+app-mf-pr-guardian-ai-workspace-page h3{font-size:15px;margin:14px 0 8px}
+app-mf-pr-guardian-ai-workspace-page p{line-height:1.65}
+app-mf-pr-guardian-ai-workspace-page .page-header, app-mf-pr-guardian-ai-workspace-page .panel-heading, app-mf-pr-guardian-ai-workspace-page .hero, app-mf-pr-guardian-ai-workspace-page .toolbar, app-mf-pr-guardian-ai-workspace-page .activity, app-mf-pr-guardian-ai-workspace-page .finding, app-mf-pr-guardian-ai-workspace-page .integration, app-mf-pr-guardian-ai-workspace-page .save-row, app-mf-pr-guardian-ai-workspace-page .page-footer{display:flex;align-items:center;gap:16px}
+app-mf-pr-guardian-ai-workspace-page .page-header{justify-content:space-between;margin-bottom:28px}
+app-mf-pr-guardian-ai-workspace-page .eyebrow, app-mf-pr-guardian-ai-workspace-page .hero-label{letter-spacing:1.5px;color:#b51d29;font-size:10px;font-weight:700;text-transform:uppercase}
+app-mf-pr-guardian-ai-workspace-page .subtitle, app-mf-pr-guardian-ai-workspace-page .muted{color:#738096;font-size:13px}
+app-mf-pr-guardian-ai-workspace-page .demo, app-mf-pr-guardian-ai-workspace-page .pill{border:1px solid #e4e9ef;border-radius:20px;padding:8px 12px;font-size:11px;background:white;color:#67778d;white-space:nowrap}
+app-mf-pr-guardian-ai-workspace-page .demo i, app-mf-pr-guardian-ai-workspace-page .activity-dot{width:7px;height:7px;border-radius:50%;background:#26a17b;display:inline-block;margin-right:5px}
+app-mf-pr-guardian-ai-workspace-page .hero{justify-content:space-between;border:1px solid #f0dadc;border-radius:14px;padding:30px;background:linear-gradient(110deg,#fff1f1,#fff 75%);margin-bottom:22px}
+app-mf-pr-guardian-ai-workspace-page .hero h2{font-size:26px;letter-spacing:-.6px;margin:14px 0 8px}
+app-mf-pr-guardian-ai-workspace-page .hero p{color:#7e6670}
+app-mf-pr-guardian-ai-workspace-page .pill{display:inline-block;margin-top:20px}
+app-mf-pr-guardian-ai-workspace-page .score{display:flex;flex-direction:column;text-align:center;gap:8px;padding:10px 20px}
+app-mf-pr-guardian-ai-workspace-page .score strong{font-size:54px;letter-spacing:-3px;color:#c92531}
+app-mf-pr-guardian-ai-workspace-page .score strong span{font-size:19px;letter-spacing:0;color:#9a858a}
+app-mf-pr-guardian-ai-workspace-page .score small{font-size:10px;color:#218366}
+app-mf-pr-guardian-ai-workspace-page .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:22px}
+app-mf-pr-guardian-ai-workspace-page .stats article{padding:21px;background:white;border:1px solid #e6eaf0;border-radius:12px;display:flex;flex-direction:column;gap:10px}
+app-mf-pr-guardian-ai-workspace-page .stats article>span{font-size:12px;color:#738096}
+app-mf-pr-guardian-ai-workspace-page .stats strong{font-size:31px;letter-spacing:-1px}
+app-mf-pr-guardian-ai-workspace-page .stats strong span{font-size:18px}
+app-mf-pr-guardian-ai-workspace-page .stats small{font-size:11px;color:#8490a0}
+app-mf-pr-guardian-ai-workspace-page .stats .danger{color:#c72c39}
+app-mf-pr-guardian-ai-workspace-page .stats .positive{color:#218366}
+app-mf-pr-guardian-ai-workspace-page .panel{background:white;border:1px solid #e5eaf0;border-radius:12px;padding:24px;margin-bottom:22px;min-width:0}
+app-mf-pr-guardian-ai-workspace-page .two-columns{display:grid;grid-template-columns:1.25fr 1fr;gap:22px}
+app-mf-pr-guardian-ai-workspace-page .panel-heading{justify-content:space-between}
+app-mf-pr-guardian-ai-workspace-page .metric{margin:20px 0}
+app-mf-pr-guardian-ai-workspace-page .metric>div:first-child{display:flex;justify-content:space-between;font-size:12px;margin-bottom:10px;gap:10px}
+app-mf-pr-guardian-ai-workspace-page .bar{height:7px;background:#f0f2f6;border-radius:8px;overflow:hidden}
+app-mf-pr-guardian-ai-workspace-page .bar span{display:block;height:100%;border-radius:8px;background:#c92936}
+app-mf-pr-guardian-ai-workspace-page .bar.low span{background:#e6a348}
+app-mf-pr-guardian-ai-workspace-page .priority{border-left:3px solid #d13743;padding:12px 18px;background:#fff9f9;border-radius:4px}
+app-mf-pr-guardian-ai-workspace-page .priority p{font-size:12px;color:#7d7e8d;margin-top:7px}
+app-mf-pr-guardian-ai-workspace-page .badge{display:inline-flex;background:#f0f3f8;color:#61718b;border-radius:5px;padding:5px 8px;font-size:10px;font-weight:600;white-space:nowrap}
+app-mf-pr-guardian-ai-workspace-page .badge.critical{background:#fde8e8;color:#ba2432}
+app-mf-pr-guardian-ai-workspace-page .badge.warning{background:#fff2dc;color:#9b6a16}
+app-mf-pr-guardian-ai-workspace-page .badge.good{background:#e8f7f0;color:#238065}
+app-mf-pr-guardian-ai-workspace-page .activity{padding:16px 0;border-top:1px solid #f0f2f6;flex-wrap:wrap}
+app-mf-pr-guardian-ai-workspace-page .activity div{flex:1}
+app-mf-pr-guardian-ai-workspace-page .activity strong{font-size:12px}
+app-mf-pr-guardian-ai-workspace-page .activity p{font-size:11px;color:#8691a1;margin-top:4px}
+app-mf-pr-guardian-ai-workspace-page .toolbar{align-items:flex-end;flex-wrap:wrap;margin-bottom:12px}
+app-mf-pr-guardian-ai-workspace-page label{display:flex;flex-direction:column;gap:8px;font-size:11px;font-weight:600;color:#64738a}
+app-mf-pr-guardian-ai-workspace-page .search{flex:1;min-width:180px}
+app-mf-pr-guardian-ai-workspace-page input, app-mf-pr-guardian-ai-workspace-page select{font:inherit;font-size:12px;color:#32435c;background:white;border:1px solid #dfe5ed;border-radius:7px;padding:11px 13px;min-width:0}
+app-mf-pr-guardian-ai-workspace-page select{min-width:160px}
+app-mf-pr-guardian-ai-workspace-page :is(input, app-mf-pr-guardian-ai-workspace-page select, app-mf-pr-guardian-ai-workspace-page button):focus-visible{outline:2px solid #b92938;outline-offset:3px}
+app-mf-pr-guardian-ai-workspace-page button{font:inherit;cursor:pointer}
+app-mf-pr-guardian-ai-workspace-page button:disabled{opacity:.5;cursor:default}
+app-mf-pr-guardian-ai-workspace-page .primary{background:#c92331;border:0;border-radius:7px;padding:12px 17px;font-size:12px;color:white;font-weight:600}
+app-mf-pr-guardian-ai-workspace-page .primary:hover{background:#a91c28}
+app-mf-pr-guardian-ai-workspace-page .text-button{color:#bc2936;border:0;background:none;font-size:12px;white-space:nowrap}
+app-mf-pr-guardian-ai-workspace-page .table-wrap{overflow-x:auto;margin-top:20px}
+app-mf-pr-guardian-ai-workspace-page table{width:100%;border-collapse:collapse;text-align:left;white-space:nowrap}
+app-mf-pr-guardian-ai-workspace-page th{font-size:10px;text-transform:uppercase;color:#8993a3;padding:13px 12px;background:#f8f9fc}
+app-mf-pr-guardian-ai-workspace-page td{padding:18px 12px;border-bottom:1px solid #eef1f5;font-size:12px}
+app-mf-pr-guardian-ai-workspace-page td small, app-mf-pr-guardian-ai-workspace-page .finding small, app-mf-pr-guardian-ai-workspace-page .context-item small{display:block;color:#8390a2;font-size:11px;margin-top:7px}
+app-mf-pr-guardian-ai-workspace-page .callout{background:#fff8ed;border:1px solid #f3e3c8;border-radius:10px;padding:18px;margin-bottom:22px;display:flex;gap:14px;align-items:center}
+app-mf-pr-guardian-ai-workspace-page .callout p{font-size:12px;color:#8b7657}
+app-mf-pr-guardian-ai-workspace-page .finding{width:100%;text-align:left;padding:22px 0;background:none;border:0;border-top:1px solid #edf0f5}
+app-mf-pr-guardian-ai-workspace-page .finding>span:nth-child(2){flex:1}
+app-mf-pr-guardian-ai-workspace-page .finding strong{font-size:13px}
+app-mf-pr-guardian-ai-workspace-page .finding:hover{background:#fafbfe}
+app-mf-pr-guardian-ai-workspace-page .empty{text-align:center;padding:35px;color:#8390a2}
+app-mf-pr-guardian-ai-workspace-page .coverage-row{padding:20px 0;border-top:1px solid #edf0f5}
+app-mf-pr-guardian-ai-workspace-page .coverage-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:30px}
+
+
+app-mf-pr-guardian-ai-workspace-page .chart{height:255px;display:flex;justify-content:space-around;align-items:flex-end;gap:20px;padding:20px 10px 0}app-mf-pr-guardian-ai-workspace-page .chart-column{display:flex;flex-direction:column;align-items:center;gap:10px;flex:1;font-size:11px;min-width:0}app-mf-pr-guardian-ai-workspace-page .chart-column>span{font-size:10px;overflow-wrap:anywhere}app-mf-pr-guardian-ai-workspace-page .chart-track{height:160px;display:flex;align-items:flex-end;width:65%;background:#fff3f4;border-radius:6px 6px 0 0}app-mf-pr-guardian-ai-workspace-page .chart-track>div{width:100%;background:linear-gradient(#e47b84,#bf2433);border-radius:6px 6px 0 0}

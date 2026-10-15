@@ -1,0 +1,21 @@
+<section class="report" aria-labelledby="pr-report-title">
+ <header class="identity"><div><p class="eyebrow">REPORTE DE REVISIÓN / {{pr().project}} / {{pr().repo}}</p><h2 id="pr-report-title">#{{pr().id}} · {{pr().title}}</h2><p>{{pr().author.name}} · {{pr().date|date:'dd/MM/yyyy':'+0000'}} · {{pr().branch}}</p></div><span class="recorded">{{outcomes[pr().outcome]}}</span></header>
+ <div [class]="'verdict '+verdict()"><div class="verdict-mark" aria-hidden="true">{{verdict()==='ready'?'✓':verdict()==='blocked'?'×':verdict()==='pending'?'…':'!'}}</div><div><h3>{{labels[verdict()].label}}</h3><p>{{labels[verdict()].description}}</p></div><div class="score"><strong>{{passed()}}<small>/{{checks().length}}</small></strong><span>controles conformes</span></div></div>
+ <div class="control-map" role="img" [attr.aria-label]="passed()+' de '+checks().length+' controles conformes; consulta el estado de cada control abajo.'">@for(check of checks();track check.id){<span [class]="check.status" [title]="check.label+': '+statuses[check.status]"></span>}</div><div class="snapshot"><span>Commit evaluado: <code>{{pr().commit}}</code></span><span>{{pr().changes.files}} archivos · +{{pr().changes.added}} / −{{pr().changes.removed}} líneas</span></div>
+ <app-audit-chart kind="pr" [records]="[pr()]" [minimumCoverage]="minimumCoverage()"/>
+ <nav class="tabs" aria-label="Secciones del reporte">@for(item of [{key:'checks',label:'Controles y evidencia'},{key:'archetype',label:'Diferencias del arquetipo'},{key:'pipeline',label:'Pipeline y pruebas'},{key:'history',label:'Evolución del PR'}];track item.key){<button type="button" [class.active]="tab()===item.key" [attr.aria-pressed]="tab()===item.key" (click)="tab.set(item.key)">{{item.label}}</button>}</nav>
+ @switch(tab()){
+  @case('checks'){
+   <div class="check-list">@for(check of checks();track check.id){<article><span [class]="'status '+check.status">{{statuses[check.status]}}</span><div><h4>{{check.label}}</h4><p>{{check.evidence}}</p>@if(check.status!=='passed'){<small>{{check.action}}</small>}</div></article>}</div>
+  }
+  @case('archetype'){
+   <div class="section-note"><strong>Arquetipo: {{pr().archetype.type}}</strong><p>{{pr().archetype.status==='NOT_EVALUATED'?'La evaluación está pendiente. No se asume cumplimiento.':'Comparación con la estructura y los lineamientos del arquetipo.'}}</p></div>
+   @for(item of pr().archetype.differences;track item.path){<article class="difference"><span [class]="'status '+(item.severity==='blocker'?'failed':'warning')">{{item.severity==='blocker'?'Bloqueo':'Advertencia'}}</span><h4>{{item.rule}}</h4><code>{{item.path}}</code><dl><dt>Esperado</dt><dd>{{item.expected}}</dd><dt>Encontrado</dt><dd>{{item.actual}}</dd><dt>Corrección propuesta</dt><dd>{{item.fix}}</dd></dl></article>}@empty{<p class="empty">{{pr().archetype.status==='MATCH'?'No hay diferencias registradas para este escenario.':'No hay evidencia de comparación disponible.'}}</p>}
+  }
+  @case('pipeline'){
+   <div class="section-note"><strong>Jenkins #{{pr().jenkins.build}} · {{pr().jenkins.status}}</strong><p>{{pr().jenkins.duration}} minutos · Commit del build: {{pr().jenkins.commit??'Pendiente'}}</p></div><ol class="stages">@for(stage of pr().jenkins.stages;track stage.name){<li [class.failure]="stage.status==='FAILURE'" [class.unstable]="stage.status==='UNSTABLE'" [class.waiting]="stage.status==='IN_PROGRESS'"><strong>{{stage.name}}</strong><span>{{stage.status}}</span></li>}</ol><p class="test-total">{{pr().tests.total-pr().tests.failed}} pruebas correctas · {{pr().tests.failed}} fallidas · {{pr().tests.total}} ejecutadas</p><p class="note">Revisa la etapa y el commit del build antes de tomar una decisión.</p>
+  }
+  @case('history'){<app-decision-chart kind="pr-trend" [records]="[pr()]" />}
+ }
+ <footer>Criterios de calidad: Quality Gate OK, cobertura ≥ {{minimumCoverage()}}%, sin vulnerabilidades ni bugs, pipeline y pruebas correctos, estructura conforme y evidencia del commit actual. Las advertencias requieren revisión humana. La recomendación no cambia el historial registrado ni registra una aprobación.</footer>
+</section>

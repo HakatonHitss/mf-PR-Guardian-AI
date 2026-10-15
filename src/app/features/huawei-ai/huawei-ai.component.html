@@ -1,0 +1,27 @@
+<section class="ai" aria-labelledby="ai-title">
+  <header><div><p class="eyebrow">HUAWEI CLOUD / MAAS</p><h2 id="ai-title">{{ configuration() ? 'Conexión de inteligencia artificial' : 'Asistente de frontend y calidad' }}</h2></div><span class="status">{{ ai.verified() ? 'IA verificada' : ai.connected() ? 'Clave configurada' : 'Sin conexión' }}</span></header>
+  @if(configuration()) {
+    <form (ngSubmit)="ai.connect()"><div class="fields"><label for="maas-url">URL base<input id="maas-url" name="maasUrl" type="url" [(ngModel)]="ai.serverUrl" [disabled]="ai.connected() || ai.busy()" required></label>
+      @if(!ai.connected()) {<label for="maas-key">API key de Huawei<input id="maas-key" name="maasKey" type="password" [(ngModel)]="ai.keyInput" [disabled]="ai.busy()" autocomplete="off" spellcheck="false" required placeholder="Ingresa tu clave MaaS"></label>}
+      <label for="maas-model">Modelo de inferencia<input id="maas-model" name="maasModel" list="maas-models" [(ngModel)]="ai.model" [disabled]="ai.busy()" required><datalist id="maas-models">@for(model of ai.models();track model){<option [value]="model"></option>}</datalist></label></div>
+      <div class="actions"><p>La clave permanece en memoria. Configurar consulta el catálogo; los permisos de inferencia se verifican al enviar una consulta.</p>@if(ai.connected()){<button type="button" class="secondary" (click)="ai.disconnect()">Desconectar</button><a routerLink="/asistente">Abrir asistente →</a>}@else{<button type="submit" [disabled]="ai.busy()">{{ ai.busy() ? 'Consultando modelos…' : 'Configurar Huawei MaaS' }}</button>}</div>
+    </form>
+    @if(ai.models().length){<p class="model-list">Modelos del catálogo: {{ ai.models().join(', ') }}</p>}
+  } @else if(!ai.connected()) {
+    <div class="empty"><h3>Conecta tu modelo de Huawei</h3><p>El asistente usa inferencia real. No genera respuestas locales de demostración.</p><a routerLink="/configuracion">Configurar Huawei MaaS →</a></div>
+  } @else {
+    <app-pr-review />
+    <div class="chat-layout"><div>
+      <div class="chat-heading"><p>Modelo: <strong>{{ ai.model }}</strong></p><button type="button" class="secondary" (click)="ai.clearConversation()" [disabled]="ai.busy() || !ai.messages().length">Nueva conversación</button></div>
+      @if(!ai.messages().length){<div class="intro"><h3>Consulta tus resultados.<br>Revisa tu código.</h3><p>Pega un fragmento Angular o comparte el resumen cargado de tus servicios para obtener un análisis contextual.</p><div class="suggestions">@for(prompt of ['¿Cómo priorizo los resultados de seguridad?','Revisa accesibilidad y rendimiento del código adjunto.','Explica la cobertura y qué datos faltan para mejorarla.'];track prompt){<button type="button" class="secondary" (click)="send(prompt)" [disabled]="ai.busy()">{{ prompt }}</button>}</div></div>}
+      <div class="messages" role="log" aria-live="polite" aria-label="Conversación con el asistente">@for(message of ai.messages();track $index){<article [class.user]="message.role==='user'"><p class="role">{{ message.role==='user' ? 'Tú' : 'Guardian · Huawei MaaS' }}</p><p class="answer">{{ message.content }}</p></article>}</div>
+      @if(ai.busy()){<p class="pending" role="status">El modelo está preparando la respuesta…</p>}
+      <form class="composer" (ngSubmit)="send()"><label for="ai-question">Tu consulta<textarea id="ai-question" name="question" [ngModel]="question()" (ngModelChange)="question.set($event)" maxlength="4000" rows="3" placeholder="¿Qué quieres revisar?" [disabled]="ai.busy()" required></textarea></label><button type="submit" [disabled]="ai.busy() || !question().trim()">Enviar consulta ↑</button></form>
+      @if(ai.lastModel()){<p class="footnote">Última respuesta generada por {{ ai.lastModel() }}. Verifica las recomendaciones antes de aplicarlas.</p>}
+    </div><aside>
+      <h3>Contexto de la consulta</h3><label class="check"><input type="checkbox" [ngModel]="includeContext()" (ngModelChange)="includeContext.set($event)" [disabled]="ai.busy()">Compartir resumen de Bitbucket y SonarQube</label><p class="footnote">Al enviar se compartirán con Huawei conteos cargados, hasta 10 títulos de PR y las métricas del proyecto y rama consultados. No se envían las credenciales de esos servicios.</p><p class="source">Bitbucket: {{ ai.bb.connected() ? ai.bb.pullRequests().length + ' PR cargados' : 'sin conexión' }}<br>SonarQube: {{ ai.sonar.context()?.project ?? 'sin datos' }} · {{ ai.sonar.context()?.branch ?? '' }}</p>
+      <label class="check"><input type="checkbox" [ngModel]="includePullRequest()" (ngModelChange)="includePullRequest.set($event)" [disabled]="ai.busy() || ai.prReview.busy() || !ai.prReview.review()">Compartir cambios del PR seleccionado</label><p class="footnote">Incluye archivos, commits y el diff cargado. Compartir datos en un turno los conserva en el contexto de la conversación; usa “Nueva conversación” para retirarlos.</p><label for="ai-code">Fragmento de código (opcional)<textarea id="ai-code" name="code" [ngModel]="code()" (ngModelChange)="code.set($event)" maxlength="16000" rows="14" placeholder="Pega aquí el HTML, TypeScript o CSS que quieras analizar." [disabled]="ai.busy()" spellcheck="false"></textarea></label><p class="footnote">Se envía el fragmento al modelo con tu consulta. También puedes cargar el diff de un PR arriba. El asistente solo recibe los cambios cuando marcas la opción de compartir; no modifica código.</p>
+    </aside></div>
+  }
+  @if(ai.error()){<p class="error" role="alert">{{ ai.error() }}</p>}
+</section>

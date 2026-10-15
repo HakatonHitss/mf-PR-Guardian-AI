@@ -1,0 +1,3 @@
+@if(kind()==='asistente'||kind()==='configuracion'){
+ <app-review-tools [view]="kind()" />
+}@else{<app-decision-workspace [view]="kind()" />}

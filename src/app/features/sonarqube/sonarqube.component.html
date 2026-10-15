@@ -1,0 +1,51 @@
+<section class="sonar" aria-labelledby="sonar-title">
+  <header><div><p class="eyebrow">SONARQUBE / {{ view() === 'configuracion' ? 'CONEXIÓN' : 'ANÁLISIS PUBLICADO' }}</p><h2 id="sonar-title">{{ view() === 'cobertura' ? 'Evolución de cobertura' : view() === 'hallazgos' ? 'Seguridad y calidad' : view() === 'configuracion' ? 'Conexión SonarQube' : view() === 'reportes' ? 'Detalle de métricas' : 'Calidad del código' }}</h2></div><span class="status">{{ sonar.connected() ? 'Conectado' : 'Sin conexión' }}</span></header>
+  @if (view() === 'configuracion') {
+    <form (ngSubmit)="sonar.connected() ? sonar.refresh() : sonar.connect()"><div class="fields">
+      <label for="sonar-url">URL de SonarQube<input id="sonar-url" name="sonarUrl" type="url" [(ngModel)]="sonar.serverUrl" [disabled]="sonar.connected() || sonar.busy()" required></label>
+      @if (!sonar.connected()) { <label for="sonar-token">Token de SonarQube<input id="sonar-token" name="sonarToken" type="password" [(ngModel)]="sonar.tokenInput" [disabled]="sonar.busy()" required autocomplete="off" spellcheck="false" placeholder="Ingresa tu token"></label> }
+      <label for="sonar-project">Clave del proyecto<input id="sonar-project" name="sonarProject" [(ngModel)]="sonar.projectKey" [disabled]="sonar.busy()" required spellcheck="false"></label>
+      <label for="sonar-branch">Rama<input id="sonar-branch" name="sonarBranch" [(ngModel)]="sonar.branch" [disabled]="sonar.busy()" placeholder="Vacío para la rama principal" spellcheck="false"></label>
+    </div><div class="actions"><p>Credenciales solo en memoria. Se eliminan al desconectar o recargar.</p><button type="submit" [disabled]="sonar.busy()">{{ sonar.busy() ? 'Consultando…' : sonar.connected() ? 'Verificar conexión' : 'Conectar SonarQube' }}</button>@if (sonar.connected()) { <button type="button" class="secondary" (click)="sonar.disconnect()">Desconectar</button> }</div></form>
+  } @else if (!sonar.connected()) {
+    <div class="empty"><p>Conecta SonarQube para consultar el análisis real de tu proyecto.</p><a routerLink="/configuracion">Configurar SonarQube →</a></div>
+  } @else {
+    <form class="context-form" (ngSubmit)="sonar.refresh()"><label for="sonar-project">Proyecto<input id="sonar-project" name="project" [(ngModel)]="sonar.projectKey" [disabled]="sonar.busy()" required></label><label for="sonar-branch">Rama<input id="sonar-branch" name="branch" [(ngModel)]="sonar.branch" [disabled]="sonar.busy()" placeholder="Principal"></label><button type="submit" [disabled]="sonar.busy()">{{ sonar.busy() ? 'Consultando…' : 'Consultar' }}</button></form>
+  }
+  @if (sonar.error()) { <p class="error" role="alert">{{ sonar.error() }}</p> }
+  <span class="sr-only" role="status" aria-live="polite">{{ sonar.busy() ? 'Consultando SonarQube' : sonar.result() ? 'Métricas actualizadas' : '' }}</span>
+  @if (sonar.context(); as context) {
+    <div class="source"><p>{{ sonar.result()?.component?.name ?? context.project }} · Rama: <strong>{{ context.branch || 'Principal' }}</strong></p>@if (view() === 'reportes') { <button type="button" class="secondary" (click)="export()">Exportar JSON</button> }</div>
+    @if (view() !== 'configuracion') {
+      @if (view() === 'reportes') {
+        <label class="metric-search" for="metric-query">Buscar métrica<input id="metric-query" type="search" [ngModel]="query()" (ngModelChange)="query.set($event)" placeholder="Nombre o clave de la métrica"></label>
+        <div class="table-wrap"><table><caption class="sr-only">Medidas de SonarQube para la rama consultada</caption><thead><tr><th scope="col">Métrica</th><th scope="col">Clave</th><th scope="col">Valor publicado</th></tr></thead><tbody>@for (metric of filteredMetrics(); track metric.key) { <tr><td>{{ metric.label }}</td><td>{{ metric.key }}</td><td>{{ metric.value ?? 'Sin dato publicado' }}{{ metric.value !== undefined && ['coverage','duplicated_lines_density'].includes(metric.key) ? '%' : '' }}</td></tr> } @empty { <tr><td colspan="3">No hay métricas que coincidan.</td></tr> }</tbody></table></div>
+      } @else {
+        <div class="metrics">@for (metric of metrics(); track metric.key) { <article><h3>{{ metric.label }}</h3><strong>{{ metric.value ?? 'Sin dato publicado' }}@if (metric.value !== undefined && metric.key === 'coverage') { <span>%</span> }</strong><small>{{ metric.key }}</small></article> }</div>
+      }
+      @if (view() === 'hallazgos' || view() === 'dashboard') {
+        <figure class="bar-chart"><figcaption>Distribución del análisis actual <span>Conteos publicados · misma escala</span></figcaption>@for (bar of bars(); track bar.key) { <div class="bar-row"><span>{{ bar.label }}</span><div class="bar-track"><div class="bar-fill" [style.width.%]="bar.value / barMax() * 100"></div></div><strong>{{ bar.value }}</strong></div> } @empty { <p>Sin conteos publicados para graficar.</p> }</figure>
+      }
+      @if (view() === 'cobertura' || view() === 'hallazgos') {
+        <section class="trend" aria-labelledby="trend-title"><div class="trend-heading"><div><h3 id="trend-title">Evolución entre análisis</h3><p>Fechas y valores del historial de SonarQube.</p></div><div class="trend-controls">@if (view() === 'hallazgos') { <label for="trend-metric">Métrica<select id="trend-metric" [ngModel]="activeMetric()" (ngModelChange)="historyMetric.set($event)" [disabled]="sonar.historyBusy()">@for (key of ['vulnerabilities','security_hotspots','bugs','code_smells']; track key) { <option [value]="key">{{ labels[key] }}</option> }</select></label> }<label for="trend-days">Periodo<select id="trend-days" [ngModel]="days()" (ngModelChange)="days.set(+$event)" [disabled]="sonar.historyBusy()"><option [ngValue]="30">30 días</option><option [ngValue]="90">90 días</option><option [ngValue]="365">1 año</option></select></label><button type="button" (click)="loadHistory()" [disabled]="sonar.historyBusy() || sonar.busy()">{{ sonar.historyBusy() ? 'Cargando…' : 'Consultar evolución' }}</button></div></div>
+          @if (sonar.historyError()) { <p class="error" role="alert">{{ sonar.historyError() }}</p> }
+          @if (visibleHistoryContext(); as historyContext) {
+            <p class="history-caption">{{ labels[historyContext.metric] }} · Últimos {{ historyContext.days }} días · {{ points().length }} valores publicados</p>
+            @if (points().length) {
+              <svg class="line-chart" viewBox="0 0 660 250" role="img" [attr.aria-label]="'Evolución de ' + labels[historyContext.metric] + '. Valores exactos en la tabla inferior.'">
+                <line x1="50" y1="40" x2="610" y2="40" class="grid-line"/><line x1="50" y1="120" x2="610" y2="120" class="grid-line"/><line x1="50" y1="200" x2="610" y2="200" class="axis"/>
+                <text x="40" y="44" text-anchor="end">{{ chartMax() }}{{ historyContext.metric === 'coverage' ? '%' : '' }}</text><text x="40" y="124" text-anchor="end">{{ chartMax()/2 }}</text><text x="40" y="204" text-anchor="end">0</text>
+                @if (points().length > 1) { <polyline [attr.points]="line()" class="trend-line"/> }
+                @for (point of points(); track point.date) { <circle [attr.cx]="point.x" [attr.cy]="point.y" r="4" class="trend-point"><title>{{ point.date | date:'medium':'+0000' }} UTC: {{ point.value }}{{ historyContext.metric === 'coverage' ? '%' : '' }}</title></circle> }
+                <text x="50" y="232">{{ points()[0].date | date:'dd MMM yy':'+0000' }}</text><text x="610" y="232" text-anchor="end">{{ points()[points().length-1].date | date:'dd MMM yy':'+0000' }}</text>
+              </svg>
+              @if (points().length === 1) { <p class="note">Hay un solo análisis con valor publicado; aún no se puede mostrar una tendencia.</p> }
+              <details><summary>Ver valores y fechas exactas</summary><div class="table-wrap"><table><thead><tr><th scope="col">Fecha UTC</th><th scope="col">{{ labels[historyContext.metric] }}</th></tr></thead><tbody>@for (point of points(); track point.date) { <tr><td>{{ point.date | date:'medium':'+0000' }}</td><td>{{ point.value }}{{ historyContext.metric === 'coverage' ? '%' : '' }}</td></tr> }</tbody></table></div></details>
+            } @else { <p class="empty">SonarQube no tiene valores históricos para esta métrica y periodo. No se generaron puntos de ejemplo.</p> }
+          } @else if (!sonar.historyBusy()) { <p class="empty">Consulta el historial para ver la evolución real de la rama.</p> }
+        </section>
+      }
+      @if (view() === 'hallazgos') { <p class="note">Los hotspots requieren revisión; no equivalen a vulnerabilidades confirmadas. Estos conteos no incluyen detalle por archivo.</p> }
+    }
+  }
+</section>

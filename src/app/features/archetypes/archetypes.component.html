@@ -1,0 +1,37 @@
+<app-data-mode />
+@if(decisions.mode()==='mock'){<app-decision-workspace view="arquetipos" />}@else{
+<header class="page-header"><p class="eyebrow">ESTÁNDARES / REFERENCIAS ARK</p><h1>Arquetipos del proyecto</h1><p>Compara la estructura completa de una rama con la referencia de shell, microfrontend o microservicio.</p></header>
+@if(!data.bb.connected()){
+ <section class="panel"><h2>Conecta Bitbucket</h2><p>Se necesita acceso de lectura al proyecto y a los tres arquetipos de ARK.</p><a routerLink="/configuracion">Configurar Bitbucket →</a></section>
+}@else{
+ <section class="panel" aria-labelledby="compare-title"><div class="heading"><h2 id="compare-title">Repositorio a evaluar</h2><span class="badge">Referencia: rama Desarrollo</span></div>
+  <form (ngSubmit)="analyze()"><div class="fields">
+   <label for="arch-project">Clave del proyecto<input id="arch-project" name="project" list="arch-projects" [ngModel]="project" (ngModelChange)="setProject($event)" [disabled]="data.busy()" required placeholder="Ej. COB"><datalist id="arch-projects">@for(project of data.bb.projects();track project.id){<option [value]="project.key">{{project.name}}</option>}</datalist></label>
+   <label for="arch-repo">Repositorio: slug o URL de Bitbucket<input id="arch-repo" name="repo" [(ngModel)]="repo" (blur)="normalizeRepository()" list="arch-repos" [disabled]="data.busy()" required placeholder="sh-caja o URL completa de Bitbucket"><datalist id="arch-repos">@for(repo of currentRepos();track repo.id){<option [value]="repo.slug">{{repo.name}}</option>}</datalist></label>
+   <label for="arch-ref">Rama, etiqueta o commit<input id="arch-ref" name="ref" [(ngModel)]="ref" [disabled]="data.busy()" placeholder="Vacío para la rama principal"></label>
+   <label for="arch-type">Arquetipo esperado<select id="arch-type" name="type" [(ngModel)]="type" [disabled]="data.busy()"><option value="auto">Identificar por estructura</option>@for(archetype of archetypes;track archetype.id){<option [value]="archetype.id">{{archetype.label}}</option>}</select></label>
+  </div>
+  @if(inputError()){<p class="error" role="alert">{{inputError()}}</p>}
+  @if(inputNotice()){<p class="notice" role="status">{{inputNotice()}}</p>}
+  <div class="module"><label for="arch-root">Carpeta del proyecto dentro del repositorio (opcional)<input id="arch-root" name="root" [(ngModel)]="root" [disabled]="data.busy()" placeholder="Normalmente vacío; no repitas aquí el nombre del repositorio"></label><button type="button" class="secondary" (click)="loadRepositories()" [disabled]="data.busy() || data.bb.busy() || !project">Cargar sugerencias de repositorios</button></div>
+  <details><summary>Opciones del microservicio Java</summary><p>Dependen de cada proyecto. “Sin especificar” deja las reglas condicionales sin evaluar.</p><div class="fields">@for(key of featureKeys();track key){<label [for]="'arch-'+key">{{optionLabels[key]??key}}<select [id]="'arch-'+key" [name]="key" [ngModel]="options[key]??null" (ngModelChange)="options[key]=$event" [disabled]="data.busy()"><option [ngValue]="null">Sin especificar</option><option [ngValue]="true">Este proyecto lo incluye</option><option [ngValue]="false">No aplica a este proyecto</option></select></label>}</div></details>
+  <div class="actions"><p>Consulta de solo lectura. No agrega ni modifica archivos y no envía código a Huawei.</p><button type="submit" [disabled]="data.busy()">{{data.busy()?'Comparando repositorios…':'Evaluar arquetipo'}}</button></div></form>
+ </section>
+ @if(data.error()){<p class="error" role="alert">{{data.error()}}</p>}
+ <p class="sr-only" role="status" aria-live="polite">{{data.busy()?'Consultando archivos y reglas de los commits seleccionados.':data.assessment()?.status??''}}</p>
+ @if(data.assessment();as result){
+  <section class="panel"><div class="heading"><div><p class="eyebrow">{{result.policyVersion?'POLÍTICA '+result.policyVersion:'DIAGNÓSTICO DE REFERENCIA'}}</p><h2>{{result.status}}</h2></div><button type="button" class="secondary" (click)="export()">Exportar evaluación</button></div>
+   @if(!result.policyVersion){<p class="notice">El arquetipo no publica una política de reglas obligatorias. Esta comparación identifica diferencias y faltantes de estructura; no certifica el cumplimiento de todos los lineamientos. Para criterios formales, publica <code>.guardian/archetype-rules.json</code> en el repositorio del arquetipo.</p>}
+   <div class="references"><div><strong>{{result.target.project}} / {{result.target.repo}}</strong><p>{{result.target.ref||'Rama principal'}} · {{result.target.commit}}</p><small>Arquetipo identificado: {{result.detected??'sin identificación concluyente'}} · Comparado con: {{result.type}}</small></div><div><a [href]="referenceUrl()" target="_blank" rel="noopener noreferrer">ARK / {{result.baseline.repo}} ↗</a><p>{{result.baseline.ref}} · {{result.baseline.commit}}</p></div></div>
+   <div class="stats"><article><span>Presentes / cumplen</span><strong>{{counts().passed}}</strong></article><article><span>Faltantes / diferencias</span><strong>{{counts().missing}}</strong></article><article><span>Sin evaluar</span><strong>{{counts().unknown}}</strong></article><article><span>No aplican</span><strong>{{counts().skipped}}</strong></article></div>
+   <div class="toolbar"><label for="arch-search">Buscar regla o ruta<input id="arch-search" type="search" [ngModel]="query()" (ngModelChange)="query.set($event)" placeholder="Ruta, categoría o evidencia"></label><label for="arch-status">Resultado<select id="arch-status" [ngModel]="filter()" (ngModelChange)="filter.set($event)"><option value="all">Todos</option>@for(status of ['passed','missing','unknown','not-applicable'];track status){<option [value]="status">{{statuses[status]}}</option>}</select></label></div>
+   <div class="table-wrap"><table><caption class="sr-only">Reglas y diferencias con evidencia de la comparación</caption><thead><tr><th scope="col">Regla / ruta</th><th scope="col">Resultado</th><th scope="col">Evidencia y siguiente paso</th></tr></thead><tbody>@for(rule of results();track rule.id){<tr><td><strong>{{rule.title}}</strong><small>{{rule.category}}@if(rule.feature){ · {{rule.feature}}}</small></td><td><span class="result" [class.missing]="rule.status==='missing'" [class.passed]="rule.status==='passed'">{{statuses[rule.status]}}</span></td><td>{{rule.evidence}}@if(rule.status==='missing'){<p class="fix">{{result.policyVersion?'Implementar el requisito publicado y volver a evaluar.':'Revisar si esta diferencia aplica; agregar o adaptar la estructura base cuando corresponda.'}}</p>}</td></tr>}@empty{<tr><td colspan="3">No hay reglas que coincidan con los filtros.</td></tr>}</tbody></table></div>
+  </section>
+ }
+ @if(data.history().length){
+  <section class="panel"><div class="heading"><h2>Faltantes por categoría</h2><span class="badge">{{data.history().length}} evaluaciones de la sesión</span></div><p>Conteos calculados con resultados reales. Se conservan hasta 50 instantáneas en memoria; repetir la misma evaluación no la duplica.</p>
+   @for(category of categories();track category.name){<div class="bar-row"><span>{{category.name}}</span><div class="track"><div [style.width.%]="category.count/maximum()*100"></div></div><strong>{{category.count}}</strong></div>}@empty{<p>No se han encontrado faltantes en las reglas evaluadas.</p>}
+  </section>
+ }
+}
+}

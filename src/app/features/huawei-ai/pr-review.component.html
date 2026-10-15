@@ -1,0 +1,29 @@
+<section class="pr-panel" aria-labelledby="pr-context-title">
+  <div class="panel-heading"><div><h3 id="pr-context-title">Revisar un pull request</h3><p>Consulta archivos, commits y líneas modificadas directamente en Bitbucket.</p></div></div>
+  @if(!data.bb.connected()){<p>Conecta Bitbucket para cargar los cambios.</p><a routerLink="/configuracion">Configurar Bitbucket →</a>}@else{
+    <div class="controls"><label for="review-search">Buscar PR<input id="review-search" type="search" [ngModel]="query()" (ngModelChange)="query.set($event)" placeholder="Título, ID o repositorio" [disabled]="data.busy()"></label><label for="review-pr">Pull request<select id="review-pr" [ngModel]="data.selectedKey()" (ngModelChange)="select($event)" [disabled]="data.busy()"><option value="">Selecciona un PR</option>@for(pr of prs();track data.bb.pullRequestKey(pr)){<option [value]="data.bb.pullRequestKey(pr)">#{{pr.id}} · {{pr.toRef.repository.slug}} · {{pr.title}}</option>}</select></label><button type="button" (click)="data.load()" [disabled]="!data.selectedKey() || data.busy()">{{data.busy()?'Cargando…':'Cargar cambios'}}</button></div>
+    <p class="hint">PR abiertos cuyo autor es el usuario del token. La búsqueda filtra las páginas cargadas.</p>
+    @if(data.bb.nextPullRequests()!==null){<button type="button" class="secondary" (click)="data.bb.loadPullRequests()" [disabled]="data.bb.busy() || data.busy()">Cargar más PR</button>}
+    @if(!prs().length){<p class="hint">No hay PR que coincidan entre los registros cargados.</p>}
+    @if(data.error()){<p class="error" role="alert">{{data.error()}}</p>}
+    <p class="sr-only" role="status" aria-live="polite">{{data.busy()?'Consultando archivos, commits y diff en Bitbucket':''}}</p>
+    @if(data.review();as review){
+      <div class="snapshot"><strong>#{{review.pr.id}} · {{review.pr.title}}</strong><small>{{review.pr.toRef.repository.project.key}} / {{review.pr.toRef.repository.slug}} · Origen: {{review.pr.fromRef?.latestCommit}}</small></div>
+      <nav class="tabs" aria-label="Datos del pull request">@for(item of [{key:'files',label:'Archivos',count:review.files.length},{key:'commits',label:'Commits',count:review.commits.length},{key:'diff',label:'Diff',count:null}];track item.key){<button type="button" class="secondary" [class.active]="tab()===item.key" [attr.aria-pressed]="tab()===item.key" (click)="tab.set(item.key)">{{item.label}} {{item.count}}</button>}</nav>
+      @switch(tab()){
+        @case('files'){
+          <label class="file-search" for="changed-file-search">Buscar archivo<input id="changed-file-search" type="search" [ngModel]="fileQuery()" (ngModelChange)="fileQuery.set($event)" placeholder="Ruta o tipo de cambio"></label>
+          <div class="scroll"><table><thead><tr><th scope="col">Cambio</th><th scope="col">Archivo</th></tr></thead><tbody>@for(file of files();track $index){<tr><td><span class="change" [class.added]="file.type==='ADD'" [class.removed]="file.type==='DELETE'">{{types[file.type]??file.type}}</span></td><td>{{file.path}}@if(file.oldPath){<small>Antes: {{file.oldPath}}</small>}</td></tr>}@empty{<tr><td colspan="2">No hay archivos que coincidan.</td></tr>}</tbody></table></div>
+        }
+        @case('commits'){
+          <p class="hint">Más recientes primero. Las fechas se muestran en UTC.</p><div class="scroll">@for(commit of review.commits;track commit.id){<article class="commit"><small>{{commit.displayId}}</small><strong>{{commit.message}}</strong><p>{{commit.author}}@if(commit.timestamp){ · {{commit.timestamp|date:'medium':'+0000'}} UTC}</p></article>}@empty{<p>No se recibieron commits para este PR.</p>}</div>
+        }
+        @case('diff'){
+          @if(review.serverTruncated || review.previewTruncated){<p class="warning">Vista parcial: Bitbucket recortó el diff o se alcanzó el límite de 60 000 caracteres de la vista previa.</p>}
+          <p class="hint">+ líneas añadidas · − líneas eliminadas · comparación del PR completo con su destino.</p><pre class="diff" tabindex="0" aria-label="Diff del pull request">{{review.diff || 'No hay cambios textuales disponibles.'}}</pre>
+        }
+      }
+      <p class="hint">Cargar no envía código a Huawei. Para analizarlo, marca “Compartir cambios del PR” y envía tu consulta. Se comparten hasta 100 archivos, 50 commits y 20 000 caracteres de diff, indicando los recortes.</p>
+    }
+  }
+</section>

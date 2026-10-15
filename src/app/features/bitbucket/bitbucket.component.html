@@ -1,0 +1,65 @@
+<header class="page-heading"><p class="eyebrow">PR GUARDIAN / WORKSPACE</p><h1>{{ titles[view ?? ''] ?? 'Configuración' }}</h1><p>{{ view === 'configuracion' ? 'Administra tus conexiones. Las credenciales permanecen solo en memoria.' : view === 'projects' ? 'Explora los proyectos y repositorios accesibles para tu cuenta.' : view === 'pull-requests' ? 'Encuentra los pull requests abiertos que has creado.' : view === 'reportes' ? 'Consulta valores publicados y exporta los datos de tus servicios.' : 'Información real de Bitbucket y SonarQube.' }}</p></header>
+@if (view === 'configuracion' || !view) {
+<section class="connection" aria-labelledby="connection-title">
+  <div class="section-heading">
+    <h2 id="connection-title">Conexión Bitbucket</h2>
+    <span class="status" [class.online]="bb.connected()">{{ bb.connected() ? 'Conectado' : 'Sin conexión' }}</span>
+  </div>
+  <form (ngSubmit)="bb.connect()">
+    <div class="fields">
+      <label for="bitbucket-url">URL del servidor
+        <input id="bitbucket-url" name="serverUrl" type="url" [(ngModel)]="bb.serverUrl" [disabled]="bb.busy() || bb.connected()" required />
+      </label>
+      @if (!bb.connected()) {
+        <label for="bitbucket-token">Token de acceso HTTP
+          <input id="bitbucket-token" name="token" type="password" [(ngModel)]="bb.tokenInput" [disabled]="bb.busy()" autocomplete="off" spellcheck="false" placeholder="Ingresa tu token" required aria-describedby="token-help" />
+        </label>
+      }
+    </div>
+    <div class="form-footer">
+      <p id="token-help">El token se conserva solo en memoria. Se elimina al desconectar o recargar la aplicación.</p>
+      @if (bb.connected()) {
+        <button type="button" class="secondary" (click)="bb.disconnect()" [disabled]="bb.busy()">Desconectar</button>
+      } @else {
+        <button type="submit" [disabled]="bb.busy()">{{ bb.busy() ? 'Conectando…' : 'Conectar Bitbucket' }}</button>
+      }
+    </div>
+  </form>
+</section>
+@if (bb.error()) { <p class="error" role="alert">{{ bb.error() }}</p> }
+<app-sonarqube view="configuracion" />
+<app-huawei-ai [configuration]="true" />
+} @else {
+  @if (['dashboard','hallazgos','cobertura','reportes'].includes(view)) { <app-sonarqube [view]="view" /> }
+  @if (view !== 'hallazgos' && view !== 'cobertura') {
+    @if (!bb.connected()) { <section class="connection empty"><h2>Bitbucket sin conexión</h2><p>Configura la conexión una vez para consultar tus proyectos y pull requests.</p><a routerLink="/configuracion">Conectar Bitbucket →</a></section> }
+    @else {
+      @if (view === 'projects') {
+        <p class="search-hint">Las búsquedas filtran los registros cargados. Usa “Cargar más” para consultar las siguientes páginas.</p>
+        <div class="explorer" [attr.aria-busy]="bb.busy()">
+          <section class="project-list" aria-labelledby="projects-title"><div class="section-heading"><h2 id="projects-title">Proyectos</h2><span>{{ filteredProjects().length }} / {{ bb.projects().length }}</span></div><label class="search-field" for="project-search">Buscar proyecto<input id="project-search" type="search" [ngModel]="projectQuery()" (ngModelChange)="projectQuery.set($event)" placeholder="Nombre o clave"></label>
+          @for (project of filteredProjects(); track project.id) { <button class="project" type="button" [class.selected]="bb.selectedProject()?.id === project.id" [attr.aria-pressed]="bb.selectedProject()?.id === project.id" [disabled]="bb.busy()" (click)="bb.selectProject(project); repoQuery.set('')"><span class="project-key">{{ project.key }}</span><span>{{ project.name }}</span></button> } @empty { <p class="empty">{{ projectQuery() ? 'No hay coincidencias en los proyectos cargados.' : 'No hay proyectos disponibles.' }}</p> }
+          @if (bb.nextProjects() !== null) { <button class="secondary more" type="button" [disabled]="bb.busy()" (click)="bb.loadProjects()">Cargar más proyectos</button> }
+          </section>
+          <section class="repo-list" aria-labelledby="repos-title"><div class="section-heading"><h2 id="repos-title">{{ bb.selectedProject()?.name ?? 'Repositorios' }}</h2><span>{{ filteredRepos().length }} / {{ bb.repositories().length }}</span></div>
+          @if (bb.selectedProject()) { <label class="search-field" for="repo-search">Buscar repositorio<input id="repo-search" type="search" [ngModel]="repoQuery()" (ngModelChange)="repoQuery.set($event)" placeholder="Nombre, slug o descripción"></label>
+            @for (repo of filteredRepos(); track repo.id) { <article class="repo"><span class="repo-mark" aria-hidden="true">&lt;/&gt;</span><div><h3>{{ repo.name }}</h3><p class="slug">{{ repo.slug }}</p>@if (repo.description) { <p>{{ repo.description }}</p> }</div></article> } @empty { <p class="empty">{{ bb.busy() ? 'Cargando repositorios…' : repoQuery() ? 'No hay coincidencias en los repositorios cargados.' : bb.repositoriesLoaded() ? 'Este proyecto no tiene repositorios disponibles.' : 'No se pudieron cargar los repositorios.' }}</p> }
+            @if (!bb.busy() && !bb.repositoriesLoaded()) { <button class="secondary" type="button" (click)="bb.loadRepositories()">Reintentar</button> }
+            @if (bb.nextRepositories() !== null) { <button class="secondary more" type="button" [disabled]="bb.busy()" (click)="bb.loadRepositories()">Cargar más repositorios</button> }
+          } @else { <p class="empty">Selecciona un proyecto para explorar sus repositorios.</p> }
+          </section>
+        </div>
+      }
+      @if (view === 'pull-requests') {
+        <section class="pull-requests" aria-labelledby="prs-title" [attr.aria-busy]="bb.busy()"><div class="section-heading"><div><h2 id="prs-title">Mis PR abiertos</h2><p class="pr-scope">Rol autor · {{ filteredPrs().length }} de {{ bb.pullRequests().length }} cargados</p></div><button type="button" class="secondary" [disabled]="bb.busy()" (click)="bb.loadPullRequests(0)">Actualizar</button></div>
+        <label class="search-field pr-search" for="pr-search">Buscar pull request<input id="pr-search" type="search" [ngModel]="prQuery()" (ngModelChange)="prQuery.set($event)" placeholder="ID, título, repositorio o proyecto"></label><p class="search-hint">Búsqueda sobre las páginas cargadas.</p>
+        @if (bb.pullRequestsError()) { <p class="error" role="alert">{{ bb.pullRequestsError() }}</p> }
+        <div class="table-scroll"><table><caption class="sr-only">Pull requests abiertos creados por el usuario del token</caption><thead><tr><th scope="col">ID</th><th scope="col">Título</th><th scope="col">Estado</th><th scope="col">Repositorio</th><th scope="col">Enlace</th></tr></thead><tbody>@for (pr of filteredPrs(); track bb.pullRequestKey(pr)) { <tr><td>#{{ pr.id }}</td><td class="pr-title">{{ pr.title }}</td><td><span class="pr-state">{{ pr.state }}</span></td><td>{{ pr.toRef.repository.slug }}</td><td><a [href]="bb.pullRequestUrl(pr)" target="_blank" rel="noopener noreferrer" [attr.aria-label]="'Abrir PR ' + pr.id + ' de ' + pr.toRef.repository.slug">Ver en Bitbucket ↗</a></td></tr> } @empty { <tr><td colspan="5" class="empty">{{ bb.busy() ? 'Consultando…' : prQuery() ? 'No hay coincidencias en los PR cargados.' : bb.pullRequestsLoaded() ? 'No tienes pull requests abiertos como autor.' : 'No se pudieron cargar los pull requests.' }}</td></tr> }</tbody></table></div>
+        @if (bb.nextPullRequests() !== null) { <button class="secondary more" type="button" [disabled]="bb.busy()" (click)="bb.loadPullRequests()">Cargar más pull requests</button> }
+        </section>
+      }
+      @if (view === 'dashboard' || view === 'historial' || view === 'reportes') { <app-bitbucket-workspace [view]="view" /> }
+    }
+    @if (bb.error()) { <p class="error" role="alert">{{ bb.error() }}</p> }
+  }
+}
