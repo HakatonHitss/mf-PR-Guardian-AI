@@ -8,7 +8,8 @@ const scenarios=['healthy','healthy','pipeline','healthy','security','pending','
 export function createPrRecords():PullRequestRecord[]{
  return Array.from({length:36},(_,index)=>{
   const scenario=scenarios[index%12];const cycle=Math.floor(index/12);const repository=repositories[(index+Math.floor(index/12))%repositories.length];const id=17+index;const month=7+Math.floor(index/12);const day=1+index%12;const date=new Date(Date.UTC(2026,month,day,14,30)).toISOString();const commit=commitHash(index,2);
-  const pr:PullRequestRecord={key:`${repository.project}/${repository.repo}/${id}`,id,project:repository.project,repo:repository.repo,title:`${index%3===0?'feat':'fix'}: ${titles[index%12]}`,author:{id:`dev-${1+(index+Math.floor(index/6))%6}`,name:authors[(index+Math.floor(index/6))%6]},branch:`Feature-${300871+index}`,commit,date,outcome:'pending',
+  const repo=id===52?'SimcardsApp':repository.repo;
+  const pr:PullRequestRecord={key:`${repository.project}/${repo}/${id}`,id,project:repository.project,repo,title:`${index%3===0?'feat':'fix'}: ${titles[index%12]}`,author:{id:`dev-${1+(index+Math.floor(index/6))%6}`,name:authors[(index+Math.floor(index/6))%6]},branch:`Feature-${300871+index}`,commit,date,outcome:'pending',
    sonar:{alert_status:'OK',coverage:84+(index%5)*3,bugs:0,vulnerabilities:0,security_hotspots:0,code_smells:index%4,duplicated_lines_density:index%3,ncloc:2923+index*75,commit},
    jenkins:{status:'SUCCESS',build:120+index,duration:5+index%8,commit,stages:[{name:'Compilación',status:'SUCCESS'},{name:'Pruebas',status:'SUCCESS'},{name:'Análisis',status:'SUCCESS'}]},tests:{total:70+index*3,failed:0},archetype:{type:repository.type,status:'MATCH',differences:[]},changes:{files:3+index%9,added:45+index*4,removed:9+index%21},history:[]};
   if(scenario==='coverage'){pr.sonar.coverage=[76,0,72][cycle];pr.sonar.alert_status='ERROR';}
